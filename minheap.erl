@@ -1,6 +1,10 @@
 -module(minheap).
--compile(export_all).
+-export([new/0, new/1, toList/1, empty/1, heap_size/1, peek/1, extract/1,
+         insert/3]).
+
+-ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
+-endif.
 
 new() -> {minheap, array:new()}.
 new(List) -> 
@@ -120,6 +124,8 @@ comparePriorities(A, B) ->
 % TESTS
 %%%%%%%%%%%%%%%%%%%%%%%%
 
+-ifdef(TEST).
+
 assert_has_minheap_property(Heap={minheap, HeapArray}) ->
   lists:foreach(
     fun(I) -> 
@@ -234,3 +240,5 @@ to_list_is_inverse_of_new_test() ->
       ?assert(Heap =:= Clone)
     end
   ).
+
+-endif.
