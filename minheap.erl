@@ -17,10 +17,6 @@ empty({minheap, HeapArray}) -> array:sparse_size(HeapArray) =:= 0.
 
 heap_size({minheap, HeapArray}) -> array:sparse_size(HeapArray).
 
-parentIndex(N) -> (N - 1) div 2.
-rightIndex(N) -> N * 2 + 1.
-leftIndex(N) -> N * 2 + 2.
-
 peek(Heap={minheap, HeapArray}) ->
   case empty(Heap) of
     true  -> nothing;
@@ -50,10 +46,7 @@ insert(Priority, Value, Heap={minheap, HeapArray}) ->
   HeapArray3 = bubble_up(Size, HeapArray2),
   {minheap, HeapArray3}.
 
-swapArrayElements(I, J, Array) ->
-  Tmp = array:get(I, Array),
-  Array2 = array:set(I, array:get(J, Array), Array),
-  array:set(J, Tmp, Array2).
+%% End of exported functions.
 
 bubble_up(0, HeapArray) -> HeapArray;
 bubble_up(CurrentIndex, HeapArray) -> 
@@ -83,6 +76,11 @@ reheap(ParentIndex, HeapArray) ->
       HeapArray2 = swapArrayElements(ParentIndex, SmallestPriorityIndex, HeapArray),
       reheap(SmallestPriorityIndex, HeapArray2)
   end.
+
+swapArrayElements(I, J, Array) ->
+  Tmp = array:get(I, Array),
+  Array2 = array:set(I, array:get(J, Array), Array),
+  array:set(J, Tmp, Array2).
 
 smallestPriorityIndex([InitialIndex|Indices], Array) ->
   InitialPriority = priorityAtIndex(InitialIndex, Array),
@@ -119,6 +117,10 @@ comparePriorities(A, B) ->
     A > B -> B;
     true -> A
   end.
+
+parentIndex(N) -> (N - 1) div 2.
+rightIndex(N) -> N * 2 + 1.
+leftIndex(N) -> N * 2 + 2.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 % TESTS
