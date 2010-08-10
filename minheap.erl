@@ -1,22 +1,68 @@
+%% @doc Priority queue implemented as a minheap.
+%% @author Phil Darnowsky <phil@darnowsky.com>
+%% @copyright Phil Darnowsky 2010, released under the MIT license.
+%% @version 0.0.1
+
+%% Copyright (c) 2010 Phil Darnowsky
+
+%% Permission is hereby granted, free of charge, to any person obtaining a copy
+%% of this software and associated documentation files (the "Software"), to deal
+%% in the Software without restriction, including without limitation the rights
+%% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+%% copies of the Software, and to permit persons to whom the Software is
+%% furnished to do so, subject to the following conditions:
+
+%% The above copyright notice and this permission notice shall be included in
+%% all copies or substantial portions of the Software.
+
+%% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+%% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+%% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+%% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+%% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+%% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+%% THE SOFTWARE.
+
 -module(minheap).
 -export([new/0, new/1, toList/1, empty/1, heap_size/1, peek/1, extract/1,
          insert/3]).
 
+%-define(TEST, true).
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 -endif.
 
+%% @type minheap() = {minheap, MinheapData}. A priority queue implemented as a minheap; i.e., elements with a lower priority value are towards the head of the queue.
+
+%% @spec new() -> minheap()
+%% @equiv new([])
+
 new() -> {minheap, array:new()}.
+
+%% @spec new(Proplist::[{Priority, Element}]) -> minheap()
+%% @doc Returns a new minheap populated with the elements of Proplist.
+
 new(List) -> 
   SortedList = lists:keysort(1, List),
   {minheap, array:from_list(SortedList)}.
 
+%% @spec toList(minheap()) -> [{Priority, Element}]
+%% @doc Turn a minheap into a property list, maintaining the guarantee that elements with a lower priority value are earlier in the list. Essentially the inverse of {@link new/1.}.
+
 toList({minheap, HeapArray}) -> array:to_list(HeapArray).
+
+%% @spec empty(minheap()) -> boolean()
+%% @doc Returns true if the minheap is empty, false otherwise.
 
 empty({minheap, HeapArray}) -> array:sparse_size(HeapArray) =:= 0.
 
+%% @spec heap_size(minheap()) -> integer()
+%% @doc Returns the number of elements in the minheap.
 heap_size({minheap, HeapArray}) -> array:sparse_size(HeapArray).
 
+%% @spec peek(minheap()) -> nothing | ItemTuple
+%%       ItemTuple = {item, Priority, Value}
+%% @doc Look at the first (lowest priority value) element of the minheap without removing it.
 peek(Heap={minheap, HeapArray}) ->
   case empty(Heap) of
     true  -> nothing;
@@ -25,6 +71,9 @@ peek(Heap={minheap, HeapArray}) ->
       {item, Priority, Value}
   end.
 
+%% @spec extract(OriginalHeap::minheap()) -> {nothing, OriginalHeap} | {ItemTuple, minheap()}
+%%       ItemTuple = {item, Priority, Value}
+%% @doc Remove the first (lowest priority value) element of the minheap and return it, along with the remaining heap.
 extract(Heap={minheap, HeapArray}) ->
   TopElement = peek(Heap),
 
@@ -39,6 +88,9 @@ extract(Heap={minheap, HeapArray}) ->
       HeapArray3 = reheap(0, HeapArray2),
       {TopElement, {minheap, HeapArray3}}
   end.
+
+%% @spec insert(Priority, Value, minheap()) -> minheap()
+%% @doc Insert an element into the minheap.
 
 insert(Priority, Value, Heap={minheap, HeapArray}) ->
   Size = heap_size(Heap),
