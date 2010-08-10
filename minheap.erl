@@ -24,7 +24,7 @@
 %% THE SOFTWARE.
 
 -module(minheap).
--export([new/0, new/1, toList/1, empty/1, heap_size/1, peek/1, extract/1,
+-export([new/0, new/1, toList/1, empty/1, heapSize/1, peek/1, extract/1,
          insert/3]).
 
 %-define(TEST, true).
@@ -56,9 +56,9 @@ toList({minheap, HeapArray}) -> array:to_list(HeapArray).
 
 empty({minheap, HeapArray}) -> array:sparse_size(HeapArray) =:= 0.
 
-%% @spec heap_size(minheap()) -> integer()
+%% @spec heapSize(minheap()) -> integer()
 %% @doc Returns the number of elements in the minheap.
-heap_size({minheap, HeapArray}) -> array:sparse_size(HeapArray).
+heapSize({minheap, HeapArray}) -> array:sparse_size(HeapArray).
 
 %% @spec peek(minheap()) -> nothing | ItemTuple
 %%       ItemTuple = {item, Priority, Value}
@@ -81,7 +81,7 @@ extract(Heap={minheap, HeapArray}) ->
     nothing -> 
       {nothing, Heap};
     _ ->
-      LastIndex = heap_size(Heap) - 1,
+      LastIndex = heapSize(Heap) - 1,
       LastElement = array:get(LastIndex, HeapArray),
 
       HeapArray2 = array:set(0, LastElement, array:set(LastIndex, undefined, HeapArray)),
@@ -93,15 +93,15 @@ extract(Heap={minheap, HeapArray}) ->
 %% @doc Insert an element into the minheap.
 
 insert(Priority, Value, Heap={minheap, HeapArray}) ->
-  Size = heap_size(Heap),
+  Size = heapSize(Heap),
   HeapArray2 = array:set(Size, {Priority, Value}, HeapArray),
-  HeapArray3 = bubble_up(Size, HeapArray2),
+  HeapArray3 = bubbleUp(Size, HeapArray2),
   {minheap, HeapArray3}.
 
 %% End of exported functions.
 
-bubble_up(0, HeapArray) -> HeapArray;
-bubble_up(CurrentIndex, HeapArray) -> 
+bubbleUp(0, HeapArray) -> HeapArray;
+bubbleUp(CurrentIndex, HeapArray) -> 
   ParentIndex = parentIndex(CurrentIndex),
 
   {CurrentPriority, _} = array:get(CurrentIndex, HeapArray),
@@ -112,7 +112,7 @@ bubble_up(CurrentIndex, HeapArray) ->
       HeapArray;
     true ->
       HeapArray2 = swapArrayElements(CurrentIndex, ParentIndex, HeapArray),
-      bubble_up(ParentIndex, HeapArray2)
+      bubbleUp(ParentIndex, HeapArray2)
   end.
 
 reheap(ParentIndex, HeapArray) ->
@@ -187,7 +187,7 @@ assert_has_minheap_property(Heap={minheap, HeapArray}) ->
         {ParentPriority, _} = array:get(parentIndex(I), HeapArray),
         ?assert(ParentPriority =< CurrentPriority)
     end,
-    lists:seq(2, heap_size(Heap) - 1)
+    lists:seq(2, heapSize(Heap) - 1)
   ).
 
   
@@ -202,13 +202,13 @@ new_0_returns_empty_minheap_test() ->
 
 new_1_returns_minheap_with_equivalent_length_test() ->
   Heap = new([{3, foo}, {2, bar}, {1, baz}]),
-  ?assert(heap_size(Heap) =:= 3).
+  ?assert(heapSize(Heap) =:= 3).
 
 test_on_random_heaps(TestFun) -> test_on_random_heaps(TestFun, []).
 test_on_random_heaps(TestFun, Options) ->
   HeapCount = extract_option(heap_count, 100, Options),
   HeapSize = extract_option(heap_size, 100, Options),
-  HeapSizeFun = extract_option(heap_size_fun, null, Options),
+  HeapSizeFun = extract_option(heapSize_fun, null, Options),
   HeapElementFun = extract_option(heap_element_fun, fun random_heap_tuple/1, Options),
 
   lists:foreach(
@@ -248,14 +248,14 @@ insert_into_empty_heap_has_one_element_at_top_test() ->
   Heap = new(),
   ?assert(empty(Heap)),
   Heap2 = insert(5, foo, Heap),
-  ?assert(heap_size(Heap2) =:= 1),
+  ?assert(heapSize(Heap2) =:= 1),
   ?assert(peek(Heap2) =:= {item, 5, foo}).
 
 insert_of_new_minimum_value_bubbles_to_top_test() ->
   Heap = new([{4, quux}, {3, baz}, {2, bar}, {1, foo}]),
   NewHeap = insert(0, fnord, Heap),
   assert_has_minheap_property(NewHeap),
-  ?assert(heap_size(NewHeap) =:= 5).
+  ?assert(heapSize(NewHeap) =:= 5).
 
 extract_from_empty_heap_returns_nothing_test() ->
   Heap = new(),
@@ -265,12 +265,12 @@ extract_from_empty_heap_returns_nothing_test() ->
 extract_from_nonempty_heap_returns_top_element_and_new_heap_test() ->
   test_on_random_heaps(
     fun(Heap) ->
-      OriginalSize = heap_size(Heap),
+      OriginalSize = heapSize(Heap),
       {item, TopPriority, TopValue} = peek(Heap),
 
       {{item, TopPriority, TopValue}, Heap2} = extract(Heap),
 
-      ?assert(heap_size(Heap2) =:= OriginalSize - 1),
+      ?assert(heapSize(Heap2) =:= OriginalSize - 1),
       assert_has_minheap_property(Heap2)
     end
   ).
