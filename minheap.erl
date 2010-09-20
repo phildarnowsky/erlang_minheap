@@ -84,7 +84,17 @@ extract(Heap={minheap, HeapArray}) ->
       LastIndex = heapSize(Heap) - 1,
       LastElement = array:get(LastIndex, HeapArray),
 
-      HeapArray2 = array:set(0, LastElement, array:set(LastIndex, undefined, HeapArray)),
+      HeapArray2 = if 
+                     (LastIndex =:= 0) ->
+                       % Special case if we're removing the 0th (hence only)
+                       % entry: the logic in the main case below would remove
+                       % the 0th element but then put it right back in, a bug
+                       % I missed the first time around.
+                       array:new();
+                     true ->
+                       array:set(0, LastElement, array:set(LastIndex, undefined, HeapArray))
+                   end,
+
       HeapArray3 = reheap(0, HeapArray2),
       {TopElement, {minheap, HeapArray3}}
   end.
@@ -294,5 +304,17 @@ to_list_is_inverse_of_new_test() ->
       ?assert(Heap =:= Clone)
     end
   ).
+
+extract_last_element_leaves_empty_heap_test() ->
+  Heap = new([{1, foo}]),
+  {_, Heap2} = extract(Heap),
+  ?assert(empty(Heap2)),
+  
+  LongerHeap = new([{1,foo}, {2, bar}, {3, baz}]),
+  {_, LongerHeap2} = extract(LongerHeap),
+  {_, LongerHeap3} = extract(LongerHeap2),
+  ?assert(heapSize(LongerHeap3) =:= 1),
+  {_, LongerHeap4} = extract(LongerHeap3),
+  ?assert(empty(LongerHeap4)).
 
 -endif.
